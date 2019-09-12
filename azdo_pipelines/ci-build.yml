@@ -1,0 +1,10 @@
+pr:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- template: base-pipeline.yml
+  parameters:
+    requirementsPath: 'requirements.txt'
