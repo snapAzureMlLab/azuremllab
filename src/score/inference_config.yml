@@ -1,0 +1,9 @@
+entryScript: score.py
+runtime: spark-py
+condaFile: conda_dependencies.yml
+extraDockerfileSteps:
+schemaFile:
+dependencies:
+enableGpu: False
+baseImage:
+baseImageRegistry:
