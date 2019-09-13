@@ -11,7 +11,7 @@ def init():
 
   global model
   from pyspark.ml import PipelineModel
-  model_path = Model.get_model_path(model_name="torchcnn")
+  model_path = Model.get_model_path(model_name="nyctexi")
   model = PipelineModel.load(model_path)
 
 
