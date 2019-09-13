@@ -42,10 +42,11 @@ model = pipeline.fit(retraining)
 model_path = 'model/lr_retrain_model'
 model.write().overwrite().save(model_path)
 
+model_name = "model/lr_retrain_model" 
 
-# model_name = "model/lr_retrain_model" 
-# model_name_blob = os.path.join(model_name)
+model_name_blob = os.path.join(model_name)
+print("copy model from to local")
 
-# print("copy model from to local")
-# model_local = "file:" + os.getcwd() + model_name
-# dbutils.fs.cp(model_name, model_local, True)
+model_local = "file:" + os.getcwd() + model_name
+
+dbutils.fs.cp(model_name, model_local, True)
