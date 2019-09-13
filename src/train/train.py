@@ -18,7 +18,9 @@ PARSER.add_argument('--MODEL_PATH')
 ARGS = PARSER.parse_args()
 
 
-trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_train.parquet"
+# trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_train.parquet"
+
+trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_test.parquet"
 training = spark.read.parquet(trainpath)
 training.cache()
 #load test data for re-train
