@@ -58,7 +58,7 @@ def main():
         None
     )
     model_dir = os.environ.get("MODEL_DIR", 'dbfs:/model')
-    model_name = os.environ.get("MODEL_NAME", 'torchcnn')
+    model_name = os.environ.get("MODEL_NAME", 'nyctexi')
 
     path_components = model_dir.split("/", 1)
     model_path = path_components[1] + "/lr_retrain_model" 
