@@ -18,14 +18,17 @@ PARSER.add_argument('--MODEL_PATH')
 ARGS = PARSER.parse_args()
 
 
-trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_train.parquet"
+spark.conf.set("fs.azure.account.key.nytaxidata.blob.core.windows.net","u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw==")
+
+
+trainpath =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/Azure_ml_train.parquet"
 
 # trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_test.parquet"
 training = spark.read.parquet(trainpath)
 training.cache()
 #load test data for re-train
 
-testpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_test.parquet"
+testpath = "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/Azure_ml_test.parquet"
 test = spark.read.parquet(testpath)
 
 #partition data for retrain - (train and test)
