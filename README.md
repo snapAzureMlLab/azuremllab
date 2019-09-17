@@ -1,87 +1,55 @@
-# MLOps with Azure ML
+#### Github Repository Architecture
 
+The tutorial assumes you have access to a github repository that contains all the code required to train and deploy an Azure Databricks ML model. 
 
-[![Build Status](https://dev.azure.com/customai/DevopsForAI-AML/_apis/build/status/Microsoft.MLOpsPython?branchName=master)](https://dev.azure.com/customai/DevopsForAI-AML/_build/latest?definitionId=25&branchName=master)
+<b> Note: </b> Without access to the repo you cannot proceed with the tutorial.
 
-### Author: Praneet Solanki | Richin Jain
+<b> By default the repo is located here:https://github.com/snapAzureMlLab/azuremllab </b>
 
-MLOps will help you to understand how to build the Continuous Integration and Continuous Delivery pipeline for a ML/AI project. We will be using the Azure DevOps Project for build and release/deployment pipelines along with Azure ML services for model retraining pipeline, model management and operationalization. 
+The repository should have the following structure:
 
-![ML lifecycle](/docs/images/ml-lifecycle.png)
+#### Environment Setup
 
-This template contains code and pipeline definition for a machine learning project demonstrating how to automate an end to end ML/AI workflow. The build pipelines include DevOps tasks for data sanity test, unit test, model training on different compute targets, model version management, model evaluation/model selection, model deployment as realtime web service, staged deployment to QA/prod and integration testing.
+- requirements.txt : It consists of a list of python packages which are needed by the train.py to run successfully on host agent (locally).
 
+- set-environment-vars.sh : This script prepares the python environment i.e. install the Azure ML SDK and the packages specified in requirements.txt
 
-## Prerequisite
-- Active Azure subscription
-- At least contributor access to Azure subscription
+- environment.yml :  build agent containing Python 3.6 and all required packages.
 
-## Getting Started:
+- setup.py : Importing the set of package for model
 
-To deploy this solution in your subscription, follow the manual instructions in the [getting started](docs/getting_started.md) doc
+#### Pipelines
 
+- /azdo_pipelines/base-pipeline.yml : a pipeline template used by build-pipeline. It contains steps performing linting, data and unit testing.
 
-## Architecture Diagram
+- /azdo_pipelines/build-pipeline.yml : a pipeline triggered when the code is merged into master. It performs linting,data integrity testing, unit testing, building and publishing an ML pipeline.
 
-This reference architecture shows how to implement continuous integration (CI), continuous delivery (CD), and retraining pipeline for an AI application using Azure DevOps and Azure Machine Learning. The solution is built on the scikit-learn diabetes dataset but can be easily adapted for any AI scenario and other popular build systems such as Jenkins and Travis. 
+#### cluster_config
 
-![Architecture](/docs/images/Architecture_DevOps_AI.png)
+- cluster_config/cluster.py : Databricks Cluster config for creating a new cluster and terminate or delete cluster.
 
+- cluster_config/cluster_manager.py : Use Existing Databricks cluster and terminate the cluster. 
 
-## Architecture Flow
+- library.json : install the library azure - ml - sdk in databricks cluster 
 
-### Train Model
-1. Data Scientist writes/updates the code and push it to git repo. This triggers the Azure DevOps build pipeline (continuous integration).
-2. Once the Azure DevOps build pipeline is triggered, it runs following types of tasks:
-    - Run for new code: Every time new code is committed to the repo, the build pipeline performs data sanity tests and unit tests on the new code.
-    - One-time run: These tasks runs only for the first time the build pipeline runs. It will programatically create an [Azure ML Service Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#workspace), provision [Azure ML Compute](https://docs.microsoft.com/en-us/azure/machine-learning/service/how-to-set-up-training-targets#amlcompute) (used for model training compute), and publish an [Azure ML Pipeline](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-ml-pipelines). This published Azure ML pipeline is the model training/retraining pipeline.
+#### Code
 
-    > Note: The Publish Azure ML pipeline task currently runs for every code change
+- /src/train/train.py : a training step of an ML training pipeline.
 
-3. The Azure ML Retraining pipeline is triggered once the Azure DevOps build pipeline completes. All the tasks in this pipeline runs on Azure ML Compute created earlier. Following are the tasks in this pipeline:
+- /aml_service/pipelines/train_pipeline.py : Create a pipeline in azure machine learning for training model. 
 
-    - **Train Model** task executes model training script on Azure ML Compute. It outputs a [model](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#model) file which is stored in the [run history](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#run).
+- /aml_service/experiment/experiment.py : Create a experiment for Tracking the model 
 
-    - **Evaluate Model** task evaluates the performance of newly trained model with the model in production. If the new model performs better than the production model, the following steps are executed. If not, they will be skipped.
+- /aml_service/experiment/register_model.py : Registers a  trained mode into azure machine learning service.
 
-    - **Register Model** task takes the improved model and registers it with the [Azure ML Model registry](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#model-registry). This allows us to version control it.
+- /aml_service/experiment/workspace.py  : Connect the azure machine learning workspace with azure devops.
 
-### Deploy Model
+- /aml_service/experiment/attach_compute.py : select the Target the cluster compute (databricks) for training the model
 
-Once you have registered your ML model, you can use Azure ML + Azure DevOps to deploy it.
+#### Scoring
 
-The **Package Model** task packages the new model along with the scoring file and its python dependencies into a [docker image](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#image) and pushes it to [Azure Container Registry](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-intro). This image is used to deploy the model as [web service](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#web-service).
-    
-The **Deploy Model** task handles deploying your Azure ML model to the cloud (ACI or AKS).
-This pipeline deploys the model scoring image into Staging/QA and PROD environments.
+- /src/score/score.py : a scoring script which is about to be packed into a Docker Image along with a model while being deployed to QA/Prod environment.
 
- In the Staging/QA environment, one task creates an [Azure Container Instance](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-overview) and deploys the scoring image as a [web service](https://docs.microsoft.com/en-us/azure/machine-learning/service/concept-azure-machine-learning-architecture#web-service) on it. 
-    
-The second task invokes the web service by calling its REST endpoint with dummy data.
-    
-5. The deployment in production is a [gated release](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=azure-devops). This means that once the model web service deployment in the Staging/QA environment is successful, a notification is sent to approvers to manually review and approve the release. Once the release is approved, the model scoring web service is deployed to [Azure Kubernetes Service(AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes) and the deployment is tested.
+- /src/score/conda_dependencies.yml : contains a list of dependencies required by sore.py to be installed in a deployable Docker Image
 
-### Repo Details
-
-You can find the details of the code and scripts in the repository [here](/docs/code_description.md)
-
-### References
-- [Azure Machine Learning(Azure ML) Service Workspace](https://docs.microsoft.com/en-us/azure/machine-learning/service/overview-what-is-azure-ml)
-- [Azure ML CLI](https://docs.microsoft.com/en-us/azure/machine-learning/service/reference-azure-machine-learning-cli)
-- [Azure ML Samples](https://docs.microsoft.com/en-us/azure/machine-learning/service/samples-notebooks)
-- [Azure ML Python SDK Quickstart](https://docs.microsoft.com/en-us/azure/machine-learning/service/quickstart-create-workspace-with-python)
-- [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/?view=vsts)
-
-# Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
-
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+- /src/score/inference_config.yml, deployment_config_aci.yml, deployment_config_aks.yml : configuration files for the AML Model Deploy pipeline task for ACI and AKS deployment targets.
