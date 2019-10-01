@@ -17,19 +17,51 @@ PARSER.add_argument('--AZUREML_SERVICE_ENDPOINT')
 PARSER.add_argument('--MODEL_PATH')
 ARGS = PARSER.parse_args()
 
+# Blob Configuration
 
-spark.conf.set("fs.azure.account.key.nytaxidata.blob.core.windows.net","u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw==")
+# Blob Storage path --- if we want change the blob storage account then we will change storage path
+ 
+storagepath = "fs.azure.account.key.nytaxidata.blob.core.windows.net"
+
+# Store Access Token -- If we change storage account then we will change access token
+
+storageaccesstoken = "u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw=="
+
+# Set up the Access key 
+
+spark.conf.set(storagepath,storageaccesstoken)
+
+# Set up the stoarge path of our account 
+
+storagePath =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/"
+
+# trainData for training the model
+
+train_data =  "Azure_ml_train.parquet"
+
+# Retraing Data for retraing the model 
+
+retrain_data = "Azure_ml_test.parquet"
+
+# fetch the training data from Blob
+
+# fetch the retrain data from Blob
+
+# if we retrain the model then we will comment  the  trainpath and uncomment the  retrainpath
 
 
-trainpath =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/Azure_ml_train.parquet"
+trainpath = storagePath + train_data 
 
-# trainpath = "wasbs://taxidata@taxinydata.blob.core.windows.net/Azure_ml_test.parquet"
+#trainpath = storagePath + retrain_data
+
 training = spark.read.parquet(trainpath)
-training.cache()
-#load test data for re-train
 
-testpath = "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/Azure_ml_test.parquet"
+training.cache()
+
+testpath = storagePath + retrain_data
+
 test = spark.read.parquet(testpath)
+
 
 #partition data for retrain - (train and test)
 
@@ -43,15 +75,6 @@ lr = LinearRegression(labelCol='actuals',maxIter=100)
 pipeline = Pipeline(stages=[lr])
 
 model = pipeline.fit(retraining)
-
 model_path = 'model/lr_retrain_model'
+
 model.write().overwrite().save(model_path)
-
-model_name = "model/lr_retrain_model" 
-
-model_name_blob = os.path.join(model_name)
-print("copy model from to local")
-
-model_local = "file:" + os.getcwd() + model_name
-
-dbutils.fs.cp(model_name, model_local, True)
