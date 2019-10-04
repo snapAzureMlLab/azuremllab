@@ -21,60 +21,46 @@ ARGS = PARSER.parse_args()
 
 # Blob Storage path --- if we want change the blob storage account then we will change storage path
  
-storagepath = "fs.azure.account.key.nytaxidata.blob.core.windows.net"
+storage_path = "fs.azure.account.key.nytaxidata.blob.core.windows.net"
 
 # Store Access Token -- If we change storage account then we will change access token
 
-storageaccesstoken = "u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw=="
+storageaccess_token = "u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw=="
 
 # Set up the Access key 
 
-spark.conf.set(storagepath,storageaccesstoken)
+spark.conf.set(storage_path,storageaccess_token)
 
 # Set up the stoarge path of our account 
 
-storagePath =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/"
+blob_path =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/"
 
 # trainData for training the model
 
-train_data =  "Azure_ml_train.parquet"
+#train_data =  "Azure_ml_train.parquet"
 
-# Retraing Data for retraing the model 
+# (Uncomment for Retraining) Retraing Data for retraing the model 
 
-retrain_data = "Azure_ml_test.parquet"
-
-# fetch the training data from Blob
-
-# fetch the retrain data from Blob
-
-# if we retrain the model then we will comment  the  trainpath and uncomment the  retrainpath
+retrain_data   = "Azure_ml_test.parquet"
 
 
-trainpath = storagePath + train_data 
 
-#trainpath = storagePath + retrain_data
+# if we retrain the model then we will comment  the  trainpath of train_data and uncomment the  train path of retrain_data
+
+
+#trainpath = blob_path + train_data 
+
+trainpath = blob_path + retrain_data
 
 training = spark.read.parquet(trainpath)
 
 training.cache()
 
-testpath = storagePath + retrain_data
-
-test = spark.read.parquet(testpath)
-
-
-#partition data for retrain - (train and test)
-
-data_retrain, data_retrain_test = test.randomSplit([0.5,0.5])
-data_retrain.cache()
-data_retrain_test.cache()
-retraining = training.union(data_retrain)
-
 #Linear Regression Model
-lr = LinearRegression(labelCol='actuals',maxIter=100)
+lr = LinearRegression(labelCol='actuals',maxIter=1000)
 pipeline = Pipeline(stages=[lr])
 
-model = pipeline.fit(retraining)
+model = pipeline.fit(training)
 model_path = 'model/lr_retrain_model'
 
 model.write().overwrite().save(model_path)
