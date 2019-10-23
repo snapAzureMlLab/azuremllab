@@ -21,11 +21,11 @@ ARGS = PARSER.parse_args()
 
 # Blob Storage path --- if we want change the blob storage account then we will change storage path
  
-storage_path = "fs.azure.account.key.nytaxidata.blob.core.windows.net"
+storage_path = "fs.azure.account.key.nytaxidataset.blob.core.windows.net"
 
 # Store Access Token -- If we change storage account then we will change access token
 
-storageaccess_token = "u0IA8jQWU5TwGwL61tb/onFAOHswohn8eJdy0UECLwXIXGP5FqivMS6yvUnzXigs489oj7q2z35deva+QFbjtw=="
+storageaccess_token = "f6SaevLhJ+KPSIiUSHzw5we2NYZjTlqRt6WstMaVei+VTyZmJjvzkB8B/6UKuOs65gNlHoXRSDBTe5g2lmtp3g=="
 
 # Set up the Access key 
 
@@ -33,7 +33,7 @@ spark.conf.set(storage_path,storageaccess_token)
 
 # Set up the stoarge path of our account 
 
-blob_path =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/"
+blob_path =  "wasbs://taxidata@nytaxidataset.blob.core.windows.net/taxidata/azure-ml/"
 
 
 # For the FIRST TIME train the model using "Azure_ml_train.parquet". So be sure to comment line "train_data   = "Azure_ml_test.parque"
