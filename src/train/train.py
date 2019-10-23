@@ -61,6 +61,7 @@ lr = LinearRegression(labelCol='actuals',maxIter=1000)
 pipeline = Pipeline(stages=[lr])
 
 model = pipeline.fit(training)
-model_path = 'model/lr_retrain_model'
+
+model_path = '/model/train_model'
 
 model.write().overwrite().save(model_path)
