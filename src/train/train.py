@@ -35,22 +35,18 @@ spark.conf.set(storage_path,storageaccess_token)
 
 blob_path =  "wasbs://taxidata@nytaxidata.blob.core.windows.net/azure-ml/"
 
-# trainData for training the model
 
-#train_data =  "Azure_ml_train.parquet"
+# For the FIRST TIME train the model using "Azure_ml_train.parquet". So be sure to comment line "train_data   = "Azure_ml_test.parque"
 
-# (Uncomment for Retraining) Retraing Data for retraing the model 
+# To RETRAIN the model, use "Azure_ml_test.parquet" So be sure to comment "train_data =  "Azure_ml_train.parquet"
+      
+train_data =  "Azure_ml_train.parquet" # Uncomment this line while training for the FIRST TIME
 
-retrain_data   = "Azure_ml_test.parquet"
-
-
-
-# if we retrain the model then we will comment  the  trainpath of train_data and uncomment the  train path of retrain_data
+# train_data   = "Azure_ml_test.parquet" #Uncomment this line for RETRAINING the model
 
 
-#trainpath = blob_path + train_data 
+trainpath = blob_path + train_data 
 
-trainpath = blob_path + retrain_data
 
 training = spark.read.parquet(trainpath)
 
@@ -65,3 +61,4 @@ model = pipeline.fit(training)
 model_path = '/model/train_model'
 
 model.write().overwrite().save(model_path)
+
