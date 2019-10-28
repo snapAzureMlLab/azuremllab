@@ -33,7 +33,7 @@ spark.conf.set(storage_path,storageaccess_token)
 
 # Set up the stoarge path of our account 
 
-blob_path =  "wasbs://taxidata@nytaxidataset.blob.core.windows.net/taxidata/azure-ml/"
+blob_path =  "wasbs://taxidata@nytaxidataset.blob.core.windows.net/azure-ml/"
 
 
 # For the FIRST TIME train the model using "Azure_ml_train.parquet". So be sure to comment line "train_data   = "Azure_ml_test.parque"
