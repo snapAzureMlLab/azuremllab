@@ -5,5 +5,5 @@ setup(
     version='0.1.0',
     description='nyctexidata',
     author='dilipa@dynapt.ai',
-    license='MIT',
+    license='dynapt',
 )

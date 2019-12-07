@@ -50,7 +50,7 @@ try:
     MODEL = Model.register(
         model_path=MODEL_PATH,
         model_name=MODEL_NAME,
-        description="nyctexi",
+        description="nyctaxi",
         workspace=WORKSPACE)
 
     print("Model registered successfully. ID: " + MODEL.id)

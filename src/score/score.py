@@ -10,7 +10,7 @@ def init():
   global spark
   global loaded_model
   spark = pyspark.sql.SparkSession.builder.appName("Azure ml services Retrained deployment").getOrCreate()
-  model_path = Model.get_model_path(model_name="nyctexi")
+  model_path = Model.get_model_path(model_name="nyctaxi")
   loaded_model = PipelineModel.load(model_path)
  
 def run(input_json):
